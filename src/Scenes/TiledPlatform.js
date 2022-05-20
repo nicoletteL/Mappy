@@ -97,10 +97,36 @@ class TiledPlatform extends Phaser.Scene {
             frame: 214
         });
 
+        this.bluePowerUps = map.createFromObjects("Objects", {
+            name: "bluePowerUp",
+            key: "kenney_sheet",
+            frame: 513
+        });
+
         // for simplicity's sake, we'll add physics to the coins manually
         // https://newdocs.phaser.io/docs/3.54.0/Phaser.Physics.Arcade.World#enable        
         // second parameter is 0: DYNAMIC_BODY or 1: STATIC_BODY
         this.physics.world.enable(this.coins, Phaser.Physics.Arcade.STATIC_BODY);
+
+        this.physics.world.enable(this.bluePowerUps, Phaser.Physics.Arcade.STATIC_BODY);
+        this.bluePowerUpGroup = this.add.group(this.bluePowerUps);
+
+
+        this.powerUpVfxManager = this.add.particles('kenney_sheet', 215);
+
+        this.powerUpVfxEffect = this.powerUpVfxManager.createEmitter({
+            follow: this.p1,
+            quantity: 20,
+            scale: {start: 1.0, end: 0.0},  // start big, end small
+            speed: {min: 50, max: 100}, // speed up
+            lifespan: 800,   // short lifespan
+            on: false   // do not immediately start, will trigger in collision
+        });
+
+        this.physics.add.overlap(this.p1, this.bluePowerUpGroup, (obj1, obj2) => {
+            this.powerUpVfxEffect.explode();  // trigger particle system
+            obj2.destroy(); // remove power up
+        })
         // now use JS .map method to set a more accurate circle body on each sprite
         this.coins.map((coin) => {
             coin.body.setCircle(4).setOffset(4, 4); 
